@@ -1,5 +1,3 @@
 data/pro.ddroid.Ziqr.desktop.in
 data/pro.ddroid.Ziqr.metainfo.xml.in
 data/pro.ddroid.Ziqr.gschema.xml
-src/main.py
-src/window.py
