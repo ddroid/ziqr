@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+	<id>pro.ddroid.Ziqr</id>
+  <launchable type="desktop-id">pro.ddroid.Ziqr.desktop</launchable>
+	<metadata_license>CC0-1.0</metadata_license>
+	<project_license>GPL-3.0-or-later</project_license>
+  <name>Ziqr</name>
+  <developer id="pro.ddroid">
+    <name>ddroid</name>
+  </developer>
+  <url type="homepage">https://ziqr.app</url>
+  <summary>Track Salah, Read the Quran</summary>
+	<description>
+	  <p>An app that lets you track and get notified of your Salah timings, and read the beautiful Quran.</p>
+    <p>Features:</p>
+    <ul>
+      <li>Choose calculation methods</li>
+      <li>Ability to get location from IP or manually</li>
+      <li>Choose school of thought, i.e later Asr time for Hanafi</li>
+      <li>read the Quran with popular translation of Saheeh International</li>
+    </ul>
+	</description>
+  <releases>
+    <release version="0.1.2" date="2025-06-23">
+      <description translatable="no">
+        <p>Application update</p>
+      </description>
+    </release>
+  </releases>
+  <content_rating type="oars-1.1"/>
+</component>

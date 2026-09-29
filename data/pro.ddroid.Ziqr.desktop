@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=Ziqr
+GenericName=Islamic Companion
+Comment=Prayer times and Quran application
+Exec=eeman
+Icon=pro.ddroid.Ziqr
+Terminal=false
+Type=Application
+Categories=Utility;GNOME;GTK;Education;
+StartupNotify=true
+StartupWMClass=pro.ddroid.Ziqr
+Keywords=Quran;Prayer;Islam;Ziqr;Salat;Adhan;

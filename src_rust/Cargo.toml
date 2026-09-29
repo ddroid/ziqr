@@ -1,0 +1,35 @@
+[package]
+name = "eeman"
+version = "0.1.2"
+edition = "2021"
+authors = ["ddroid"]
+description = "Prayer times & Quran reader"
+license = "GPL-3.0-or-later"
+
+[dependencies]
+gtk = { package = "gtk4", version = "0.9" }
+adw = { package = "libadwaita", version = "0.7", features = ["v1_4"] }
+glib = "0.20"
+gio = "0.20"
+libc = "0.2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+# `net` is required so `tokio::task::spawn_blocking` (used internally by
+# hyper-util for DNS via `getaddrinfo`) has an I/O reactor to schedule onto.
+# `time` enables connection / DNS timeouts used by reqwest.
+# `rt-multi-thread` gives us a background worker pool; `macros` is needed by the
+# `tokio::main`/`tokio::test` macros used in the test suite.
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "time"] }
+lazy_static = "1.4"
+chrono = "0.4"
+dirs = "5"
+rust-ini = "0.19"
+lru = "0.12"
+futures = "0.3"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
+opt-level = 3

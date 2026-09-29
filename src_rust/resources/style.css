@@ -1,0 +1,18 @@
+/* Arabic text styling with Hafs font */
+.arabic-text {
+    font-family: 'KFGQPC HafsEx1 Uthmanic Script', 'Scheherazade New', 'Traditional Arabic', 'Noto Naskh Arabic', serif;
+    font-size: 28px;
+    line-height: 2.2;
+}
+
+.surah-heading {
+    font-family: 'KFGQPC HafsEx1 Uthmanic Script', 'Scheherazade New', 'Traditional Arabic', serif;
+    font-size: 36px;
+    font-weight: bold;
+}
+
+.bismillah {
+    font-family: 'KFGQPC HafsEx1 Uthmanic Script', 'Scheherazade New', 'Traditional Arabic', serif;
+    font-size: 32px;
+    padding: 20px 0;
+}
