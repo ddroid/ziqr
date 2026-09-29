@@ -36,6 +36,11 @@
       "name": "eeman",
       "builddir": true,
       "buildsystem": "meson",
+      "build-options": {
+        "build-args": [
+          "--share=network"
+        ]
+      },
       "sources": [
         {
           "type": "dir",

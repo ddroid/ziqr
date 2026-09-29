@@ -1,0 +1,154 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release Tag (e.g. v0.1.2)'
+        required: false
+        default: ''
+
+jobs:
+  build-appimage:
+    name: Build AppImage
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            src_rust/target
+          key: appimage-cargo-${{ runner.os }}-${{ hashFiles('src_rust/Cargo.lock') }}
+          restore-keys: |
+            appimage-cargo-${{ runner.os }}-
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            meson \
+            ninja-build \
+            pkg-config \
+            libgtk-4-dev \
+            libadwaita-1-dev \
+            libssl-dev \
+            desktop-file-utils \
+            appstream \
+            gettext \
+            file \
+            libfuse2
+
+      - name: Build and stage AppDir
+        run: |
+          meson setup build --prefix=/usr
+          DESTDIR=$PWD/AppDir ninja -C build install
+          glib-compile-schemas AppDir/usr/share/glib-2.0/schemas
+          cp AppDir/usr/share/applications/pro.ddroid.Ziqr.desktop AppDir/
+          cp AppDir/usr/share/icons/hicolor/scalable/apps/pro.ddroid.Ziqr.svg AppDir/
+          cp AppDir/usr/share/icons/hicolor/scalable/apps/pro.ddroid.Ziqr.svg AppDir/.DirIcon
+
+      - name: Create AppRun entrypoint
+        run: |
+          cat << 'EOF' > AppDir/AppRun
+          #!/bin/sh
+          SELF=$(readlink -f "$0")
+          HERE=${SELF%/*}
+          export PATH="${HERE}/usr/bin:${PATH}"
+          export LD_LIBRARY_PATH="${HERE}/usr/lib:${HERE}/usr/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}"
+          export XDG_DATA_DIRS="${HERE}/usr/share:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
+          export GSETTINGS_SCHEMA_DIR="${HERE}/usr/share/glib-2.0/schemas:${GSETTINGS_SCHEMA_DIR}"
+          exec "${HERE}/usr/bin/eeman" "$@"
+          EOF
+          chmod +x AppDir/AppRun
+
+      - name: Package AppImage
+        run: |
+          curl -sLO https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool-x86_64.AppImage
+          ARCH=x86_64 ./appimagetool-x86_64.AppImage --appimage-extract-and-run AppDir Ziqr-x86_64.AppImage
+
+      - name: Upload AppImage Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Ziqr-AppImage
+          path: Ziqr-x86_64.AppImage
+
+  build-flatpak:
+    name: Build Flatpak
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-48
+      options: --privileged
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Flatpak Bundle
+        uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        with:
+          bundle: Ziqr.flatpak
+          manifest-path: pro.ddroid.Ziqr.json
+          run-args: |
+            --share=network
+          cache-key: flatpak-builder-${{ github.sha }}
+
+      - name: Upload Flatpak Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Ziqr-Flatpak
+          path: Ziqr.flatpak
+
+  release:
+    name: Publish Release
+    needs: [build-appimage, build-flatpak]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download AppImage Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: Ziqr-AppImage
+          path: release-assets
+
+      - name: Download Flatpak Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: Ziqr-Flatpak
+          path: release-assets
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'release'
+        with:
+          files: |
+            release-assets/Ziqr-x86_64.AppImage
+            release-assets/Ziqr.flatpak
+          generate_release_notes: true
+
+      - name: Create or Update Release (manual trigger)
+        if: github.event_name == 'workflow_dispatch' && inputs.tag_name != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ inputs.tag_name }}" \
+            release-assets/Ziqr-x86_64.AppImage \
+            release-assets/Ziqr.flatpak \
+            --title "Release ${{ inputs.tag_name }}" \
+            --generate-notes
